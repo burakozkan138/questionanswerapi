@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ./config/.env
+    restart: always
+    container_name: questionanswer-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    networks:
+      - app-network
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    image: postgres
+    restart: always
+    container_name: questionanswer-db
+    hostname: questionanswerdb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "verysecretpassword"
+      POSTGRES_DB: "questionanswer"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+networks:
+  app-network:
+    driver: bridge

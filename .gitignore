@@ -1,0 +1,53 @@
+# Go binary and object files
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go test and benchmark files
+*.test
+*.bench
+
+# Go build cache
+*.a
+*.o
+
+# Go generated files
+*_gen.go
+
+# Go vendor directory
+/vendor/
+
+# Go module cache
+/go/pkg/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sublime-*
+*.swp
+*.swo
+
+# Compiled output
+/bin/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Environment variables file
+.env
+!.env.example
+
+data

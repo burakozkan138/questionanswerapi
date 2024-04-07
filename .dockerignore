@@ -1,0 +1,22 @@
+# Ignore editor and IDE files
+.vscode/
+.idea/
+
+# Ignore build artifacts
+bin/
+obj/
+
+# Ignore vendor dependencies
+vendor/
+
+# Ignore test and coverage files
+*.test
+*.cover
+
+# Ignore any generated files
+*.generated
+
+# Ignore any temporary files
+*.tmp
+*.bak
+*.swp

@@ -1,0 +1,567 @@
+basePath: /api/v1
+definitions:
+  models.BaseResponse:
+    properties:
+      data: {}
+      httpStatus:
+        type: integer
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  models.CreateAnswerValidation:
+    properties:
+      content:
+        maxLength: 500
+        minLength: 10
+        type: string
+    required:
+    - content
+    type: object
+  models.CreateQuestionValidation:
+    properties:
+      content:
+        maxLength: 500
+        minLength: 5
+        type: string
+      title:
+        maxLength: 100
+        minLength: 5
+        type: string
+    required:
+    - content
+    - title
+    type: object
+  models.EditAnswerValidation:
+    properties:
+      content:
+        maxLength: 500
+        minLength: 10
+        type: string
+    type: object
+  models.EditQuestionValidation:
+    properties:
+      content:
+        maxLength: 500
+        minLength: 5
+        type: string
+      title:
+        maxLength: 100
+        minLength: 5
+        type: string
+    type: object
+  models.EditUserValidation:
+    properties:
+      bio:
+        maxLength: 255
+        type: string
+      fullname:
+        maxLength: 50
+        minLength: 3
+        type: string
+      location:
+        maxLength: 50
+        type: string
+      website:
+        type: string
+    type: object
+  models.LoginValidation:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      username:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - password
+    type: object
+  models.RegisterValidation:
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      fullname:
+        maxLength: 50
+        minLength: 3
+        type: string
+      password:
+        minLength: 6
+        type: string
+      username:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - confirm_password
+    - email
+    - fullname
+    - password
+    - username
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This API provides endpoints for managing questions and answers.
+  title: Question Answer API
+  version: "1.0"
+paths:
+  /answer/{answer_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an answer
+      parameters:
+      - description: Answer ID
+        in: path
+        name: answer_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      security:
+      - Bearer: []
+      summary: Delete an answer
+      tags:
+      - Answers
+    put:
+      consumes:
+      - application/json
+      description: Edit an answer
+      parameters:
+      - description: Answer ID
+        in: path
+        name: answer_id
+        required: true
+        type: string
+      - description: Answer information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.EditAnswerValidation'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      security:
+      - Bearer: []
+      summary: Edit an answer
+      tags:
+      - Answers
+  /answer/{answer_id}/like:
+    post:
+      consumes:
+      - application/json
+      description: Like an answer
+      parameters:
+      - description: Answer ID
+        in: path
+        name: answer_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      security:
+      - Bearer: []
+      summary: Like an answer
+      tags:
+      - Answers
+  /answer/{question_id}/answers:
+    get:
+      consumes:
+      - application/json
+      description: Get answers for the provided question
+      parameters:
+      - description: Question ID
+        in: path
+        name: question_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      summary: Get answers for a question
+      tags:
+      - Answers
+    post:
+      consumes:
+      - application/json
+      description: Create a new answer for the provided question
+      parameters:
+      - description: Question ID
+        in: path
+        name: question_id
+        required: true
+        type: string
+      - description: Answer information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateAnswerValidation'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      security:
+      - Bearer: []
+      summary: Create a new answer
+      tags:
+      - Answers
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login a user with email or username the provided information
+      parameters:
+      - description: User information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginValidation'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      summary: Login a user
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with the provided information
+      parameters:
+      - description: User information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterValidation'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      summary: Register a new user
+      tags:
+      - Auth
+  /question/:
+    get:
+      consumes:
+      - application/json
+      description: Fetch all questions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      summary: Fetch all questions
+      tags:
+      - Questions
+  /question/{question_id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetch question by ID
+      parameters:
+      - description: Question ID
+        in: path
+        name: question_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      summary: Fetch question by ID
+      tags:
+      - Questions
+  /question/{question_id}/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Delete question
+      parameters:
+      - description: Question ID
+        in: path
+        name: question_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      security:
+      - Bearer: []
+      summary: Delete question
+      tags:
+      - Questions
+  /question/{question_id}/edit:
+    put:
+      consumes:
+      - application/json
+      description: Edit question
+      parameters:
+      - description: Question ID
+        in: path
+        name: question_id
+        required: true
+        type: string
+      - description: Question information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.EditQuestionValidation'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      security:
+      - Bearer: []
+      summary: Edit question
+      tags:
+      - Questions
+  /question/{question_id}/like:
+    post:
+      consumes:
+      - application/json
+      description: Like question
+      parameters:
+      - description: Question ID
+        in: path
+        name: question_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      security:
+      - Bearer: []
+      summary: Like question
+      tags:
+      - Questions
+  /question/ask:
+    post:
+      consumes:
+      - application/json
+      description: Ask a question
+      parameters:
+      - description: Question information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateQuestionValidation'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      security:
+      - Bearer: []
+      summary: Ask a question
+      tags:
+      - Questions
+  /user/edit:
+    put:
+      consumes:
+      - application/json
+      description: Edit the profile of the authenticated user
+      parameters:
+      - description: User information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.EditUserValidation'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      security:
+      - Bearer: []
+      summary: Edit user profile
+      tags:
+      - Users
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get the profile of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.BaseResponse'
+      security:
+      - Bearer: []
+      summary: Get user profile
+      tags:
+      - Users
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
