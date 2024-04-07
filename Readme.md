@@ -34,3 +34,8 @@ Proje başarı ile ayağa kalktı ise swagger arayüzüne erişmek için aşağ�
 ```bash
 http://localhost:8080/swagger
 ```
+
+### Şuan için swagger üzerinde authentication alanı gereken requestlerde bazı hatalar mevcut ancak postman ile oluşturduğum workspace üzerinde herhangibir hata görmedim.
+```bash
+https://www.postman.com/cinemabookingsystem/workspace/questionanswer
+```
