@@ -6,7 +6,6 @@ import (
 	"burakozkan138/questionanswerapi/pkg"
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -27,7 +26,6 @@ func IsAuthenticated(next http.Handler) http.Handler {
 
 		userID, err := pkg.ValidateToken(token)
 		if err != nil {
-			log.Println(err)
 			newToken, err := GetAccessFromRefreshToken(r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -42,10 +40,6 @@ func IsAuthenticated(next http.Handler) http.Handler {
 			}
 		}
 
-		type contextKey string
-
-		const userIDKey contextKey = "userID"
-
 		if err := db.Where("id = ?", userID).First(&user).Error; err != nil {
 			http.Error(w, "User not found", http.StatusNotFound)
 			return
@@ -57,7 +51,7 @@ func IsAuthenticated(next http.Handler) http.Handler {
 		}
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, userIDKey, userID)
+		ctx = context.WithValue(ctx, "userID", userID)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

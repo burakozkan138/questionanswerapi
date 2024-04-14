@@ -8,12 +8,17 @@ import (
 	"github.com/google/uuid"
 )
 
-func CreateToken(userID uuid.UUID, exp time.Duration, otherClaims map[string]interface{}) (string, error) {
+func CreateToken(userID uuid.UUID, exp string, otherClaims map[string]interface{}) (string, error) {
 	config := config.JwtConfig
+
+	expDuration, err := time.ParseDuration(exp)
+	if err != nil {
+		return "", err
+	}
 
 	claims := jwt.MapClaims{
 		"userId": userID,
-		"exp":    time.Now().Add(exp).Unix(),
+		"exp":    time.Now().Add(expDuration).Unix(),
 		"iat":    time.Now().Unix(),
 		"iss":    config.Issuer,
 		"aud":    config.Audience,

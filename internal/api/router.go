@@ -2,6 +2,7 @@
 package api
 
 import (
+	"burakozkan138/questionanswerapi/config"
 	"burakozkan138/questionanswerapi/internal/api/answers"
 	"burakozkan138/questionanswerapi/internal/api/auth"
 	"burakozkan138/questionanswerapi/internal/api/questions"
@@ -23,7 +24,9 @@ func Rewrite() {
 }
 
 func InitilazeRoutes() http.Handler {
-	routes.Handle("/swagger/", initilazeSwagger())
+	if config.SvConfig.SwaggerUI {
+		routes.Handle("/swagger/", initilazeSwagger())
+	}
 	routes.Handle("/api/v1/", http.StripPrefix("/api/v1", groupRoutes())) // TODO: Add versioning to config
 
 	stack := middleware.CreateStack(

@@ -31,24 +31,26 @@ type (
 	}
 
 	ServerConfig struct {
-		Port int
+		Port      int
+		SwaggerUI bool
 	}
 
 	JWTConfig struct {
 		SecretKey        string
 		Issuer           string
 		Audience         string
-		AccessExpiresIn  time.Duration
-		RefreshExpiresIn time.Duration
+		AccessExpiresIn  string
+		RefreshExpiresIn string
 	}
 )
 
 func InitializeConfig() (*Config, error) {
+	viper.SetDefault("SERVER_PORT", 8080)
+	viper.SetDefault("SWAGGER_UI", true)
+
 	viper.SetDefault("POSTGRES_HOST", "localhost")
 	viper.SetDefault("POSTGRES_PORT", 5432)
 	viper.SetDefault("POSTGRES_DB", "postgres")
-
-	viper.SetDefault("SERVER_PORT", 8080)
 
 	viper.SetDefault("JWT_SECRET_KEY", "secretKEY")
 	viper.SetDefault("JWT_ISSUER", "questionanswerapi")
@@ -66,14 +68,15 @@ func InitializeConfig() (*Config, error) {
 			SSLMode:  viper.GetString("DATABASE_SSL_MODE"),
 		},
 		Server: ServerConfig{
-			Port: viper.GetInt("SERVER_PORT"),
+			Port:      viper.GetInt("SERVER_PORT"),
+			SwaggerUI: viper.GetBool("SWAGGER_UI"),
 		},
 		JWT: JWTConfig{
 			SecretKey:        viper.GetString("JWT_SECRET_KEY"),
 			Issuer:           viper.GetString("JWT_ISSUER"),
 			Audience:         viper.GetString("JWT_ALGORITHM"),
-			AccessExpiresIn:  viper.GetDuration("JWT_EXPIRES_IN"),
-			RefreshExpiresIn: viper.GetDuration("JWT_REFRESH_EXPIRES_IN"),
+			AccessExpiresIn:  viper.GetString("JWT_EXPIRES_IN"),
+			RefreshExpiresIn: viper.GetString("JWT_REFRESH_EXPIRES_IN"),
 		},
 	}
 

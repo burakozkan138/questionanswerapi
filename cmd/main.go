@@ -21,6 +21,7 @@ import (
 func main() {
 	err := config.LoadConfig(".env", "env", "../config")
 	if err != nil {
+		log.Fatalf("Error loading config: %s", err.Error())
 		return
 	}
 
