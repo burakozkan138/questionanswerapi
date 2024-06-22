@@ -17,10 +17,10 @@ type Handler struct{}
 // @Accept json
 // @Produce json
 // @Param body body models.RegisterValidation true "User information"
-// @Success 201 {object} models.BaseResponse
-// @Failure 400 {object} models.BaseResponse
-// @Failure 409 {object} models.BaseResponse
-// @Failure 500 {object} models.BaseResponse
+// @Success 201 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 409 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /auth/register [post]
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -30,12 +30,14 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := json.NewDecoder(r.Body).Decode(&requestUser); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		response := models.NewResponse(false, "Invalid JSON", http.StatusBadRequest, nil, nil)
+		response.Write(w)
 		return
 	}
 
 	if err := db.Where("email = ?", requestUser.Email).Or("username = ?", requestUser.Username).First(&dbUser).Error; err == nil {
-		http.Error(w, "User already exists", http.StatusConflict)
+		response := models.NewResponse(false, "User already exists", http.StatusConflict, nil, nil)
+		response.Write(w)
 		return
 	}
 
@@ -47,21 +49,20 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := db.Create(&dbUser).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "User could not be created", http.StatusInternalServerError, nil, nil)
+		response.Write(w)
 		return
 	}
 
 	authResponse, err := dbUser.ToUserAuthResponse()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "Internal server error", http.StatusInternalServerError, nil, nil)
+		response.Write(w)
 		return
 	}
 
-	response := models.NewBaseResponse(true, "User created successfully", http.StatusCreated, authResponse)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
-	w.WriteHeader(http.StatusCreated)
+	response := models.NewResponse(true, "User created successfully", http.StatusCreated, authResponse, nil)
+	response.Write(w)
 }
 
 // Login godoc
@@ -71,12 +72,12 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param body body models.LoginValidation true "User information"
-// @Success 200 {object} models.BaseResponse
-// @Failure 400 {object} models.BaseResponse
-// @Failure 401 {object} models.BaseResponse
-// @Failure 403 {object} models.BaseResponse
-// @Failure 404 {object} models.BaseResponse
-// @Failure 500 {object} models.BaseResponse
+// @Success 200 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 401 {object} models.Response
+// @Failure 403 {object} models.Response
+// @Failure 404 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /auth/login [post]
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -86,36 +87,38 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := json.NewDecoder(r.Body).Decode(&requestUser); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		response := models.NewResponse(false, "Invalid JSON", http.StatusBadRequest, nil, nil)
+		response.Write(w)
 		return
 	}
 
 	if err := db.Where("email = ?", requestUser.Email).Or("username = ?", requestUser.Username).First(&dbUser).Error; err != nil {
-		http.Error(w, "User not found", http.StatusNotFound)
+		response := models.NewResponse(false, "User not found", http.StatusNotFound, nil, nil)
+		response.Write(w)
 		return
 	}
 
 	if !dbUser.CheckPassword(requestUser.Password) {
-		http.Error(w, "Invalid password", http.StatusUnauthorized)
+		repsonse := models.NewResponse(false, "Invalid password", http.StatusUnauthorized, nil, nil)
+		repsonse.Write(w)
 		return
 	}
 
 	if dbUser.Blocked {
-		http.Error(w, "User is blocked", http.StatusForbidden)
+		response := models.NewResponse(false, "User is blocked", http.StatusForbidden, nil, nil)
+		response.Write(w)
 		return
 	}
 
 	authResponse, err := dbUser.ToUserAuthResponse()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "Internal server error", http.StatusInternalServerError, nil, nil)
+		response.Write(w)
 		return
 	}
 
-	response := models.NewBaseResponse(true, "User logged in successfully", http.StatusOK, authResponse)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
-	w.WriteHeader(http.StatusOK)
+	response := models.NewResponse(true, "User logged in successfully", http.StatusOK, authResponse, nil)
+	response.Write(w)
 }
 
 func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
@@ -130,12 +133,14 @@ func (h *Handler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := json.NewDecoder(r.Body).Decode(&requestEmail); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		response := models.NewResponse(false, "Invalid JSON", http.StatusBadRequest, nil, nil)
+		response.Write(w)
 		return
 	}
 
 	if err := db.Where("email = ?", requestEmail.Email).First(&dbUser).Error; err != nil {
-		http.Error(w, "User not found", http.StatusNotFound)
+		response := models.NewResponse(false, "User not found", http.StatusNotFound, nil, nil)
+		response.Write(w)
 		return
 	}
 

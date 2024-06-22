@@ -29,4 +29,8 @@ type (
 		RefreshToken string      `json:"refresh_token"`
 		User         UserProfile `json:"user"`
 	}
+
+	ctxKey string
 )
+
+const USER_CTX_KEY ctxKey = "userID"

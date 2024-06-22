@@ -19,7 +19,7 @@ func TestLogin(t *testing.T) {
 		if err := initDB(); err != nil {
 			t.Error("Failed to initialize database")
 		}
-		routes := api.InitilazeRoutes()
+		routes := api.InitializeRoutes()
 
 		req, err := createLoginRequest("testuser", "testuser")
 		if err != nil {
@@ -29,10 +29,10 @@ func TestLogin(t *testing.T) {
 		resp := httptest.NewRecorder()
 		routes.ServeHTTP(resp, req)
 
-		var response models.BaseResponse
+		var response models.Response
 		err = json.Unmarshal(resp.Body.Bytes(), &response)
 		if err != nil {
-			t.Error("Failed to unmarshal response body to BaseResponse")
+			t.Error("Failed to unmarshal response body to Response")
 		}
 
 		if response.HttpStatus != http.StatusOK {
@@ -56,7 +56,7 @@ func TestLogin(t *testing.T) {
 		if err := initDB(); err != nil {
 			t.Error("Failed to initialize database")
 		}
-		routes := api.InitilazeRoutes()
+		routes := api.InitializeRoutes()
 
 		req, err := createLoginRequest("testuser", "invalidpassword")
 		if err != nil {
@@ -66,10 +66,10 @@ func TestLogin(t *testing.T) {
 		resp := httptest.NewRecorder()
 		routes.ServeHTTP(resp, req)
 
-		var response models.BaseResponse
+		var response models.Response
 		err = json.Unmarshal(resp.Body.Bytes(), &response)
 		if err != nil {
-			t.Error("Failed to unmarshal response body to BaseResponse")
+			t.Error("Failed to unmarshal response body to Response")
 		}
 
 		if response.HttpStatus != http.StatusUnauthorized {

@@ -14,6 +14,7 @@ import (
 
 	_ "burakozkan138/questionanswerapi/docs"
 
+	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -23,14 +24,14 @@ func Rewrite() {
 	routes = http.NewServeMux()
 }
 
-func InitilazeRoutes() http.Handler {
+func InitializeRoutes() http.Handler {
 	if config.SvConfig.SwaggerUI {
 		routes.Handle("/swagger/", initilazeSwagger())
 	}
 	routes.Handle("/api/v1/", http.StripPrefix("/api/v1", groupRoutes())) // TODO: Add versioning to config
 
 	stack := middleware.CreateStack(
-		middleware.AllowCors,
+		cors.AllowAll().Handler,
 		middleware.ErrorHandler,
 		middleware.Logging,
 	)

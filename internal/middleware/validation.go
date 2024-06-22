@@ -23,10 +23,8 @@ func Validation(next http.Handler, obj interface{}) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
-			response := models.NewErrorResponse(false, "Invalid JSON", http.StatusBadRequest, nil, nil)
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(response.Error())
-			w.WriteHeader(http.StatusBadRequest)
+			response := models.NewResponse(false, "Invalid JSON", http.StatusBadRequest, nil, nil)
+			response.Write(w)
 			return
 		}
 		defer r.Body.Close()
@@ -38,11 +36,8 @@ func Validation(next http.Handler, obj interface{}) http.Handler {
 		if err != nil {
 			errors := TranslateErrors(err.(validator.ValidationErrors))
 
-			response := models.NewErrorResponse(false, "Validation error", http.StatusBadRequest, nil, errors)
-
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(response.Error())
-			w.WriteHeader(http.StatusBadRequest)
+			response := models.NewResponse(false, "Validation error", http.StatusBadRequest, nil, errors)
+			response.Write(w)
 			return
 		}
 

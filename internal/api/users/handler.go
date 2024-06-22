@@ -16,8 +16,8 @@ type Handler struct{}
 // @Accept json
 // @Produce json
 // @Security Bearer
-// @Success 200 {object} models.BaseResponse
-// @Failure 500 {object} models.BaseResponse
+// @Success 200 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /user/profile [get]
 func (h *Handler) Profile(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -25,18 +25,16 @@ func (h *Handler) Profile(w http.ResponseWriter, r *http.Request) {
 		db     = database.GetDB()
 	)
 
-	userID := r.Context().Value("userID")
+	userID := r.Context().Value(models.USER_CTX_KEY)
 
 	if err := db.Where("id = ?", userID).First(&dbUser).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "User not found", http.StatusNotFound, nil, nil)
+		response.Write(w)
 		return
 	}
 
-	response := models.NewBaseResponse(true, "User fetched successfully", http.StatusOK, dbUser.ToUserProfileResponse())
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
-	w.WriteHeader(http.StatusOK)
+	response := models.NewResponse(true, "User fetched successfully", http.StatusOK, dbUser.ToUserProfileResponse(), nil)
+	response.Write(w)
 }
 
 // Edit godoc
@@ -47,9 +45,9 @@ func (h *Handler) Profile(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Security Bearer
 // @Param body body models.EditUserValidation true "User information"
-// @Success 200 {object} models.BaseResponse
-// @Failure 400 {object} models.BaseResponse
-// @Failure 500 {object} models.BaseResponse
+// @Success 200 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /user/edit [put]
 func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -59,29 +57,29 @@ func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := json.NewDecoder(r.Body).Decode(&requestUser); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		response := models.NewResponse(false, "Invalid JSON", http.StatusBadRequest, nil, nil)
+		response.Write(w)
 		return
 	}
 
-	userID := r.Context().Value("userID")
+	userID := r.Context().Value(models.USER_CTX_KEY)
 
 	if err := db.Where("id = ?", userID).First(&dbUser).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "User not found", http.StatusNotFound, nil, nil)
+		response.Write(w)
 		return
 	}
 
 	dbUser.EditUserCheckFields(requestUser)
 
 	if err := db.Save(&dbUser).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "User edit failed", http.StatusInternalServerError, nil, nil)
+		response.Write(w)
 		return
 	}
 
-	response := models.NewBaseResponse(true, "User edit successfully", http.StatusOK, dbUser.ToUserProfileResponse())
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
-	w.WriteHeader(http.StatusOK)
+	response := models.NewResponse(true, "User edit successfully", http.StatusOK, dbUser.ToUserProfileResponse(), nil)
+	response.Write(w)
 }
 
 func (h *Handler) UploadImage(w http.ResponseWriter, r *http.Request) {

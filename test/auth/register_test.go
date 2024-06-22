@@ -18,7 +18,7 @@ func TestRegister(t *testing.T) {
 		if err := initDB(); err != nil {
 			t.Error("Failed to initialize database")
 		}
-		routes := api.InitilazeRoutes()
+		routes := api.InitializeRoutes()
 
 		req, err := createRegisterRequest("Test User", "testuser", "test@test.com", "testuser", "testuser")
 		if err != nil {
@@ -28,10 +28,10 @@ func TestRegister(t *testing.T) {
 		resp := httptest.NewRecorder()
 		routes.ServeHTTP(resp, req)
 
-		var baseResp models.BaseResponse
+		var baseResp models.Response
 		err = json.Unmarshal(resp.Body.Bytes(), &baseResp)
 		if err != nil {
-			t.Error("Failed to unmarshal response body to BaseResponse")
+			t.Error("Failed to unmarshal response body to Response")
 		}
 
 		if baseResp.HttpStatus != http.StatusCreated {
@@ -60,7 +60,7 @@ func TestRegister(t *testing.T) {
 			t.Error("Failed to initialize database")
 		}
 
-		routes := api.InitilazeRoutes()
+		routes := api.InitializeRoutes()
 
 		req, err := createRegisterRequest("", "", "invalidemail", "", "")
 		if err != nil {
@@ -70,10 +70,10 @@ func TestRegister(t *testing.T) {
 		resp := httptest.NewRecorder()
 		routes.ServeHTTP(resp, req)
 
-		var errResp models.ErrorResponse
+		var errResp models.Response
 		err = json.Unmarshal(resp.Body.Bytes(), &errResp)
 		if err != nil {
-			t.Error("Failed to unmarshal response body to BaseResponse")
+			t.Error("Failed to unmarshal response body to Response")
 		}
 
 		if errResp.HttpStatus != http.StatusBadRequest {

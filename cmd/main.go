@@ -35,7 +35,7 @@ func main() {
 		return
 	}
 
-	handler := api.InitilazeRoutes()
+	handler := api.InitializeRoutes()
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", config.Server.Port),

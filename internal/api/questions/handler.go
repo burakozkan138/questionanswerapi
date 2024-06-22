@@ -17,8 +17,8 @@ type Handler struct{}
 // @Tags Questions
 // @Accept json
 // @Produce json
-// @Success 200 {object} models.BaseResponse
-// @Failure 500 {object} models.BaseResponse
+// @Success 200 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /question/ [get]
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -27,15 +27,13 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := db.Preload("Likes").Preload("User").Preload("Answers").Find(&dbQuestions).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "Questions could not be fetched", http.StatusInternalServerError, nil, nil)
+		response.Write(w)
 		return
 	}
 
-	response := models.NewBaseResponse(true, "Questions fetched successfully", http.StatusOK, models.MapToQuestionResponse(dbQuestions))
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
-	w.WriteHeader(http.StatusOK)
+	response := models.NewResponse(true, "Questions fetched successfully", http.StatusOK, models.MapToQuestionResponse(dbQuestions), nil)
+	response.Write(w)
 }
 
 // Fetch question by ID godoc
@@ -45,8 +43,8 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param question_id path string true "Question ID"
-// @Success 200 {object} models.BaseResponse
-// @Failure 500 {object} models.BaseResponse
+// @Success 200 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /question/{question_id} [get]
 func (h *Handler) GetById(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -57,15 +55,13 @@ func (h *Handler) GetById(w http.ResponseWriter, r *http.Request) {
 	questionID := r.PathValue("question_id")
 
 	if err := db.Preload("User").Preload("Likes").Preload("Answers.User").Preload("Answers.Likes").Where("id = ?", questionID).First(&dbQuestion).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "Question could not be fetched", http.StatusInternalServerError, nil, nil)
+		response.Write(w)
 		return
 	}
 
-	response := models.NewBaseResponse(true, "Question fetched successfully", http.StatusOK, dbQuestion.ToResponse())
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
-	w.WriteHeader(http.StatusOK)
+	response := models.NewResponse(true, "Question fetched successfully", http.StatusOK, dbQuestion.ToResponse(), nil)
+	response.Write(w)
 }
 
 // Edit question godoc
@@ -77,9 +73,9 @@ func (h *Handler) GetById(w http.ResponseWriter, r *http.Request) {
 // @Security Bearer
 // @Param question_id path string true "Question ID"
 // @Param body body models.EditQuestionValidation true "Question information"
-// @Success 200 {object} models.BaseResponse
-// @Failure 400 {object} models.BaseResponse
-// @Failure 500 {object} models.BaseResponse
+// @Success 200 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /question/{question_id}/edit [put]
 func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -89,30 +85,30 @@ func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := json.NewDecoder(r.Body).Decode(&requestQuestion); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		response := models.NewResponse(false, "Invalid JSON", http.StatusBadRequest, nil, nil)
+		response.Write(w)
 		return
 	}
 
 	questionID := r.PathValue("question_id")
-	userID := r.Context().Value("userID").(uuid.UUID)
+	userID := r.Context().Value(models.USER_CTX_KEY).(uuid.UUID)
 
 	if err := db.Where("id = ? AND user_id = ?", questionID, userID).Preload("User").First(&dbQuestion).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "Question not found", http.StatusNotFound, nil, nil)
+		response.Write(w)
 		return
 	}
 
 	dbQuestion.EditQuestionCheckFields(requestQuestion)
 
 	if err := db.Save(&dbQuestion).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "Question could not be edited", http.StatusInternalServerError, nil, nil)
+		response.Write(w)
 		return
 	}
 
-	response := models.NewBaseResponse(true, "Question edit successfully", http.StatusOK, dbQuestion.ToResponse())
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
-	w.WriteHeader(http.StatusOK)
+	response := models.NewResponse(true, "Question edit successfully", http.StatusOK, dbQuestion.ToResponse(), nil)
+	response.Write(w)
 }
 
 // Like question godoc
@@ -123,8 +119,8 @@ func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Security Bearer
 // @Param question_id path string true "Question ID"
-// @Success 200 {object} models.BaseResponse
-// @Failure 500 {object} models.BaseResponse
+// @Success 200 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /question/{question_id}/like [post]
 func (h *Handler) Like(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -134,7 +130,7 @@ func (h *Handler) Like(w http.ResponseWriter, r *http.Request) {
 	)
 
 	questionID := r.PathValue("question_id")
-	userID := r.Context().Value("userID").(uuid.UUID)
+	userID := r.Context().Value(models.USER_CTX_KEY).(uuid.UUID)
 
 	dbLike = models.QuestionLike{
 		QuestionID: uuid.MustParse(questionID),
@@ -144,25 +140,24 @@ func (h *Handler) Like(w http.ResponseWriter, r *http.Request) {
 	if err := db.Where("question_id = ? AND user_id = ?", questionID, userID).First(&dbLike).Error; err != nil {
 
 		if err := db.Create(&dbLike).Error; err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			response := models.NewResponse(false, "Question could not be liked", http.StatusInternalServerError, nil, nil)
+			response.Write(w)
 			return
 		}
 
 		message = "Question liked successfully"
 	} else {
 		if err := db.Delete(&dbLike).Error; err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			response := models.NewResponse(false, "Question could not be unliked", http.StatusInternalServerError, nil, nil)
+			response.Write(w)
 			return
 		}
 
 		message = "Question unliked successfully"
 	}
 
-	response := models.NewBaseResponse(true, message, http.StatusOK, nil)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
-	w.WriteHeader(http.StatusOK)
+	response := models.NewResponse(true, message, http.StatusOK, nil, nil)
+	response.Write(w)
 }
 
 // Ask godoc
@@ -173,9 +168,9 @@ func (h *Handler) Like(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Security Bearer
 // @Param body body models.CreateQuestionValidation true "Question information"
-// @Success 201 {object} models.BaseResponse
-// @Failure 400 {object} models.BaseResponse
-// @Failure 500 {object} models.BaseResponse
+// @Success 201 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /question/ask [post]
 func (h *Handler) Ask(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -185,11 +180,12 @@ func (h *Handler) Ask(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := json.NewDecoder(r.Body).Decode(&requestQuestion); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		response := models.NewResponse(false, "Invalid JSON", http.StatusBadRequest, nil, nil)
+		response.Write(w)
 		return
 	}
 
-	userID := r.Context().Value("userID")
+	userID := r.Context().Value(models.USER_CTX_KEY)
 
 	dbQuestion = models.Question{
 		Title:   requestQuestion.Title,
@@ -198,20 +194,19 @@ func (h *Handler) Ask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := db.Create(&dbQuestion).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "Question could not be created", http.StatusInternalServerError, nil, nil)
+		response.Write(w)
 		return
 	}
 
 	if err := db.Preload("User").First(&dbQuestion).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "Question could not be fetched", http.StatusInternalServerError, nil, nil)
+		response.Write(w)
 		return
 	}
 
-	response := models.NewBaseResponse(true, "Question created successfully", http.StatusCreated, dbQuestion.ToResponse())
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
-	w.WriteHeader(http.StatusCreated)
+	response := models.NewResponse(true, "Question created successfully", http.StatusCreated, dbQuestion.ToResponse(), nil)
+	response.Write(w)
 }
 
 // Delete godoc
@@ -222,8 +217,8 @@ func (h *Handler) Ask(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Security Bearer
 // @Param question_id path string true "Question ID"
-// @Success 200 {object} models.BaseResponse
-// @Failure 500 {object} models.BaseResponse
+// @Success 200 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /question/{question_id}/delete [delete]
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -232,21 +227,20 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	)
 
 	questionID := r.PathValue("question_id")
-	userID := r.Context().Value("userID").(uuid.UUID)
+	userID := r.Context().Value(models.USER_CTX_KEY).(uuid.UUID)
 
 	if err := db.Where("id = ? AND user_id = ?", questionID, userID).First(&dbQuestion).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "Question not found", http.StatusNotFound, nil, nil)
+		response.Write(w)
 		return
 	}
 
 	if err := db.Delete(&dbQuestion).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response := models.NewResponse(false, "Question could not be deleted", http.StatusInternalServerError, nil, nil)
+		response.Write(w)
 		return
 	}
 
-	response := models.NewBaseResponse(true, "Question deleted successfully", http.StatusOK, nil)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
-	w.WriteHeader(http.StatusOK)
+	response := models.NewResponse(true, "Question deleted successfully", http.StatusOK, nil, nil)
+	response.Write(w)
 }

@@ -20,7 +20,8 @@ func IsAuthenticated(next http.Handler) http.Handler {
 		token, err := GetTokenFromHeader(r)
 
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			response := models.NewResponse(false, "Invalid JSON", http.StatusBadRequest, nil, nil)
+			response.Write(w)
 			return
 		}
 
@@ -28,30 +29,34 @@ func IsAuthenticated(next http.Handler) http.Handler {
 		if err != nil {
 			newToken, err := GetAccessFromRefreshToken(r)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusUnauthorized)
+				response := models.NewResponse(false, "Unauthorized", http.StatusUnauthorized, nil, nil)
+				response.Write(w)
 				return
 			}
 
 			w.Header().Set("Authorization", "Bearer "+newToken)
 			userID, err = pkg.ValidateToken(newToken)
 			if err != nil {
-				http.Error(w, "Invalid token", http.StatusUnauthorized)
+				response := models.NewResponse(false, "Unauthorized", http.StatusUnauthorized, nil, nil)
+				response.Write(w)
 				return
 			}
 		}
 
 		if err := db.Where("id = ?", userID).First(&user).Error; err != nil {
-			http.Error(w, "User not found", http.StatusNotFound)
+			response := models.NewResponse(false, "User not found", http.StatusNotFound, nil, nil)
+			response.Write(w)
 			return
 		}
 
 		if user.Blocked {
-			http.Error(w, "User is blocked", http.StatusForbidden)
+			response := models.NewResponse(false, "User is blocked", http.StatusForbidden, nil, nil)
+			response.Write(w)
 			return
 		}
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, "userID", userID)
+		ctx = context.WithValue(ctx, models.USER_CTX_KEY, userID)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

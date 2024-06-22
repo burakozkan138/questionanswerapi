@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"burakozkan138/questionanswerapi/internal/models"
 	"log"
 	"net/http"
 )
@@ -10,7 +11,8 @@ func ErrorHandler(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				log.Printf("Panic: %v", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				response := models.NewResponse(false, "Internal Server Error", http.StatusInternalServerError, nil, nil)
+				response.Write(w)
 			}
 		}()
 

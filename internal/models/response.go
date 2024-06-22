@@ -1,48 +1,37 @@
 package models
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 type (
-	BaseResponse struct {
+	Response struct {
 		Success    bool        `json:"success"`
 		Message    string      `json:"message"`
 		HttpStatus int         `json:"httpStatus"`
 		Data       interface{} `json:"data,omitempty"`
-	}
-
-	ErrorResponse struct {
-		BaseResponse
-		Errors map[string]string `json:"errors"`
+		Errors     interface{} `json:"errors,omitempty"`
 	}
 )
 
-func NewBaseResponse(success bool, message string, httpStatus int, data interface{}) BaseResponse {
-	return BaseResponse{
+func NewResponse(success bool, message string, httpStatus int, data interface{}, errors interface{}) Response {
+	return Response{
 		Success:    success,
 		Message:    message,
 		HttpStatus: httpStatus,
 		Data:       data,
+		Errors:     errors,
 	}
 }
 
-func NewErrorResponse(success bool, message string, httpStatus int, data interface{}, errors map[string]string) ErrorResponse {
-	return ErrorResponse{
-		BaseResponse: BaseResponse{
-			Success:    success,
-			Message:    message,
-			HttpStatus: httpStatus,
-			Data:       data,
-		},
-		Errors: errors,
-	}
+func (b *Response) Write(w http.ResponseWriter) {
+	w.WriteHeader(b.HttpStatus)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(b.ToJson())
 }
 
-func (b BaseResponse) ToJson() []byte {
+func (b Response) ToJson() []byte {
 	jsonBytes, _ := json.Marshal(b)
-	return jsonBytes
-}
-
-func (e ErrorResponse) Error() []byte {
-	jsonBytes, _ := json.Marshal(e)
 	return jsonBytes
 }

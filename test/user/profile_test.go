@@ -19,7 +19,7 @@ func TestProfile(t *testing.T) {
 		if err := initDB(); err != nil {
 			t.Error("Failed to initialize database")
 		}
-		routes := api.InitilazeRoutes()
+		routes := api.InitializeRoutes()
 
 		req, err := http.NewRequest("GET", "/api/v1/auth/profile", nil)
 		if err != nil {
@@ -31,10 +31,10 @@ func TestProfile(t *testing.T) {
 		resp := httptest.NewRecorder()
 		routes.ServeHTTP(resp, req)
 
-		var baseResp models.BaseResponse
+		var baseResp models.Response
 		err = json.Unmarshal(resp.Body.Bytes(), &baseResp)
 		if err != nil {
-			t.Error("Failed to unmarshal response body to BaseResponse")
+			t.Error("Failed to unmarshal response body to Response")
 		}
 
 		if baseResp.HttpStatus != http.StatusOK {
@@ -58,7 +58,7 @@ func TestProfile(t *testing.T) {
 		if err := initDB(); err != nil {
 			t.Error("Failed to initialize database")
 		}
-		routes := api.InitilazeRoutes()
+		routes := api.InitializeRoutes()
 
 		req, err := http.NewRequest("GET", "/api/v1/auth/profile", nil)
 		if err != nil {
@@ -70,10 +70,10 @@ func TestProfile(t *testing.T) {
 		resp := httptest.NewRecorder()
 		routes.ServeHTTP(resp, req)
 
-		var baseResp models.BaseResponse
+		var baseResp models.Response
 		err = json.Unmarshal(resp.Body.Bytes(), &baseResp)
 		if err != nil {
-			t.Error("Failed to unmarshal response body to BaseResponse")
+			t.Error("Failed to unmarshal response body to Response")
 		}
 
 		if baseResp.HttpStatus != http.StatusUnauthorized {
