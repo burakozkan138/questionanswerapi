@@ -39,7 +39,6 @@ FROM alpine:latest
 COPY --from=builder ./app/build /build
 COPY --from=builder ./app/config /config
 COPY --from=builder ./app/docs /docs
-COPY --from=builder ./app/script /script
 
 # Command to run the executable
 CMD ["/build"]
